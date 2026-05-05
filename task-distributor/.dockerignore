@@ -1,0 +1,10 @@
+src
+*.iml
+.idea
+.git
+target/classes
+target/test-classes
+target/generated-sources
+target/maven-archiver
+target/surefire-reports
+target/*.original

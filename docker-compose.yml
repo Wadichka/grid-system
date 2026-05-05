@@ -1,0 +1,66 @@
+x-executor-template: &executor-template
+  build: ./task-executor
+  networks:
+    - grid-network
+  command:
+    - "--bundle-storage.dir=/app/bundles"
+
+services:
+  task-generator:
+    build: ./task-generator
+    container_name: task-generator
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_GRPC_CLIENT_DEFAULT_CHANNEL_ADDRESS: static://task-distributor:9090
+    command:
+      - "--jar-storage.dir=/app/jars"
+    depends_on:
+      - task-distributor
+    networks:
+      - grid-network
+
+  task-distributor:
+    build: ./task-distributor
+    container_name: task-distributor
+    ports:
+      - "8090:8090"
+      - "9090:9090"
+    environment:
+      NODES_0_ID: node-1
+      NODES_0_HOST: task-executor-1
+      NODES_0_PORT: 9091
+      NODES_1_ID: node-2
+      NODES_1_HOST: task-executor-2
+      NODES_1_PORT: 9091
+      NODES_2_ID: node-3
+      NODES_2_HOST: task-executor-3
+      NODES_2_PORT: 9091
+    depends_on:
+      - task-executor-1
+      - task-executor-2
+      - task-executor-3
+    networks:
+      - grid-network
+
+  task-executor-1:
+    <<: *executor-template
+    container_name: task-executor-1
+    environment:
+      NODE_ID: node-1
+
+  task-executor-2:
+    <<: *executor-template
+    container_name: task-executor-2
+    environment:
+      NODE_ID: node-2
+
+  task-executor-3:
+    <<: *executor-template
+    container_name: task-executor-3
+    environment:
+      NODE_ID: node-3
+
+networks:
+  grid-network:
+    driver: bridge

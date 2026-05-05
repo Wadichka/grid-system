@@ -1,0 +1,24 @@
+server:
+  port: 8090
+
+# Порт, на котором поднимается gRPC сервер распределятора
+spring:
+  grpc:
+    server:
+      port: 9090
+      max-inbound-message-size: 67108864
+
+nodes:
+  - id: node-1
+    host: localhost
+    port: 9091
+  - id: node-2
+    host: localhost
+    port: 9092
+  - id: node-3
+    host: localhost
+    port: 9093
+
+logging:
+  level:
+    com.gridcomputing: DEBUG

@@ -1,0 +1,30 @@
+server:
+  port: 8091
+
+# Порт, на котором поднимается gRPC сервер ноды
+spring:
+  grpc:
+    server:
+      port: 9091
+      max-inbound-message-size: 67108864
+    client:
+      default-channel:
+        address: static://localhost:9090
+        max-inbound-message-size: 67108864
+        negotiation-type: plaintext
+
+# Уникальный ID ноды (можно переопределить через -Dnode.id=...)
+node:
+  id: node-1
+
+# Куда регистрироваться (адрес распределятора)
+distributor:
+  host: localhost
+  port: 9090
+
+logging:
+  level:
+    com.gridcomputing: DEBUG
+
+bundle-storage:
+  dir: ./task-executor/bundles

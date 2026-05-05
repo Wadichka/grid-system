@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  grpc:
+    client:
+      default-channel:
+        address: static://localhost:9090
+        max-inbound-message-size: 67108864
+        negotiation-type: plaintext
+
+jar-storage:
+  dir: ./task-generator/jars
