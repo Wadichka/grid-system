@@ -27,6 +27,7 @@
 		<module>task-distributor</module>
 		<module>proto</module>
 		<module>max-submatrix-sum</module>
+		<module>taxi-routing</module>
 		<module>task-api</module>
 	</modules>
 

@@ -1,4 +1,4 @@
-package com.gridcomputing.task_generator.task;
+package com.gridcomputing.task_generator.matrix;
 
 import com.gridcomputing.task_generator.domain.ResultAggregator;
 import com.gridcomputing.task_generator.domain.Task;
@@ -10,10 +10,10 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class MatrixResultAggregator implements ResultAggregator<Task, MatrixResult> {
+public class MatrixResultAggregator implements ResultAggregator<MatrixTask, MatrixResult> {
 
     @Override
-    public MatrixResult aggregate(Task task, List<PartialResult> partialResults) {
+    public MatrixResult aggregate(MatrixTask task, List<PartialResult> partialResults) {
         if (partialResults.isEmpty()) {
             throw new IllegalStateException("Нет результатов для агрегации!");
         }

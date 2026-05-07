@@ -1,4 +1,4 @@
-package com.gridcomputing.task_generator.task;
+package com.gridcomputing.task_generator.matrix;
 
 import com.gridcomputing.task_generator.domain.TaskSplitter;
 import lombok.extern.slf4j.Slf4j;

@@ -56,7 +56,7 @@ public class JarStorage {
         if (jarPath == null) {
             throw new IllegalArgumentException("Jar с id={}" + jarId + " не найден");
         }
-        return  Files.readAllBytes(jarPath);
+        return Files.readAllBytes(jarPath);
     }
 
     public boolean exists(String jarId) {
