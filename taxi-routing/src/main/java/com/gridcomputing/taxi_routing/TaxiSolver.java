@@ -22,16 +22,55 @@ public class TaxiSolver implements SubtaskSolver {
             long[][] dist = floydWarshall(data.graph, data.v);
             long[][] cost = buildCostMatrix(dist, data.taxis, data.passengers);
 
-            BacktrackState state = applyPrefix(subtaskData, data.x, data.y, cost);
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new ByteArrayInputStream(subtaskData), StandardCharsets.UTF_8));
 
-            backtrack(state.assignment, state.usedPassengers, state.currentCost,
-                    0, data.x, data.y, cost, state.bestAssignment, state.bestCost);
+            int p = Integer.parseInt(reader.readLine().trim());
 
-            return formatResult(state.bestAssignment, state.bestCost[0], data.x);
+            long bestCost = INF;
+            int[] bestAssignment = new int[data.x];
+
+            for (int prefixIdx = 0; prefixIdx < p; prefixIdx++) {
+                BacktrackState state = readPrefix(reader, data.x, data.y, cost);
+
+                backtrack(state.assignment, state.usedPassengers, state.currentCost,
+                        0, data.x, data.y, cost, state.bestAssignment, state.bestCost);
+
+                if (state.bestCost[0] < bestCost) {
+                    bestCost = state.bestCost[0];
+                    System.arraycopy(state.bestAssignment, 0, bestAssignment, 0, data.x);
+                }
+            }
+
+            return formatResult(bestAssignment, bestCost, data.x);
 
         } catch (IOException e) {
             throw new RuntimeException("Ошибка парсинга данных", e);
         }
+    }
+
+    private BacktrackState readPrefix(BufferedReader reader, int x, int y, long[][] cost) throws IOException {
+        int k = Integer.parseInt(reader.readLine().trim());
+
+        int[] assignment = new int[x];
+        Arrays.fill(assignment, -1);
+
+        boolean[] usedPassengers = new boolean[y];
+        long currentCost = 0;
+
+        for (int i = 0; i < k; i++) {
+            StringTokenizer st = new StringTokenizer(reader.readLine());
+            int taxiIdx = Integer.parseInt(st.nextToken());
+            int passIdx = Integer.parseInt(st.nextToken());
+            assignment[taxiIdx] = passIdx;
+            usedPassengers[passIdx] = true;
+            currentCost += cost[taxiIdx][passIdx];
+        }
+
+        int[] bestAssignment = new int[x];
+        long[] bestCost = {INF};
+
+        return new BacktrackState(assignment, usedPassengers, currentCost, bestAssignment, bestCost);
     }
 
     private ProblemData parseShared(byte[] sharedData) throws IOException {

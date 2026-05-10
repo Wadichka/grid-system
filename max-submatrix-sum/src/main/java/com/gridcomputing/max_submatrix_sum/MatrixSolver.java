@@ -14,36 +14,54 @@ public class MatrixSolver implements SubtaskSolver {
     @Override
     public byte[] solve(byte[] sharedData, byte[] subtaskData) {
         try {
-            BufferedReader sharedReader = new BufferedReader(
-                    new InputStreamReader(new ByteArrayInputStream(sharedData), StandardCharsets.UTF_8)
-            );
+            long[][] matrix = parseMatrix(sharedData);
+            int n = matrix.length;
 
-            int n = Integer.parseInt(sharedReader.readLine().trim());
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new ByteArrayInputStream(subtaskData), StandardCharsets.UTF_8));
+            int p = Integer.parseInt(reader.readLine().trim());
 
-            long[][] matrix = new long[n][n];
-            for (int i = 0; i < n; i++) {
-                StringTokenizer tokenizer = new StringTokenizer(sharedReader.readLine().trim());
-                for (int j = 0; j < n; j++) {
-                    matrix[i][j] = Long.parseLong(tokenizer.nextToken());
+            long bestSum = Long.MIN_VALUE;
+            int bestTop = -1;
+            int bestLeft = -1;
+            int bestK = -1;
+
+            for (int i = 0; i < p; i++) {
+                StringTokenizer st = new StringTokenizer(reader.readLine());
+                int top = Integer.parseInt(st.nextToken());
+                int bottom = Integer.parseInt(st.nextToken());
+                int k = bottom - top + 1;
+
+                Result result = findBestSquareForRowRange(matrix, n, top, bottom);
+
+                if (result.sum() > bestSum) {
+                    bestSum = result.sum();
+                    bestTop = top;
+                    bestLeft = result.left();
+                    bestK = k;
                 }
             }
 
-            BufferedReader subtaskReader = new BufferedReader(
-                    new InputStreamReader(new ByteArrayInputStream(subtaskData), StandardCharsets.UTF_8)
-            );
-            StringTokenizer tokenizer = new StringTokenizer(subtaskReader.readLine().trim());
-            int top = Integer.parseInt(tokenizer.nextToken());
-            int bottom = Integer.parseInt(tokenizer.nextToken());
-
-            Result result = findBestSquareForRowRange(matrix, n, top, bottom);
-            int k = bottom - top + 1;
-
-            String response = result.sum + " " + top + " " + result.left + " " + k;
-            return response.getBytes(StandardCharsets.UTF_8);
+            String output = bestSum + " " + bestTop + " " + bestLeft + " " + bestK;
+            return output.getBytes(StandardCharsets.UTF_8);
 
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка чтения входных данных", e);
+            throw new RuntimeException("Ошибка парсинга данных", e);
         }
+    }
+
+    private long[][] parseMatrix(byte[] sharedData) throws IOException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new ByteArrayInputStream(sharedData), StandardCharsets.UTF_8));
+        int n = Integer.parseInt(reader.readLine().trim());
+        long[][] matrix = new long[n][n];
+        for (int i = 0; i < n; i++) {
+            StringTokenizer st = new StringTokenizer(reader.readLine());
+            for (int j = 0; j < n; j++) {
+                matrix[i][j] = Long.parseLong(st.nextToken());
+            }
+        }
+        return matrix;
     }
 
     private Result findBestSquareForRowRange(long[][] matrix, int n, int top, int bottom) {

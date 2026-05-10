@@ -1,7 +1,9 @@
 package com.gridcomputing.task_generator.taxi;
 
 import com.gridcomputing.task_generator.domain.TaskSplitter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -13,33 +15,60 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class TaxiTaskSplitter implements TaskSplitter<TaxiTask> {
+
+    @Value("${batching.size:16}")
+    private int batchSize;
 
     @Override
     public List<SubTaskData> split(TaxiTask task) {
-        List<SubTaskData> subtasks = new ArrayList<>();
+        int totalPrefixes = task.getY();
 
-        // Каждая подзадача фиксирует первое назначение taxi[0] → passenger[i]
-        for (int passengerIdx = 0; passengerIdx < task.getY(); passengerIdx++) {
-            byte[] serialized = serializePrefix(0, passengerIdx);
+        int numBatches = (totalPrefixes + batchSize - 1) / batchSize;
+
+        List<List<Integer>> batches = new ArrayList<>();
+        for (int i = 0; i < numBatches; i++) {
+            batches.add(new ArrayList<>());
+        }
+
+        for (int passengerIdx = 0; passengerIdx < totalPrefixes; passengerIdx++) {
+            int wave = passengerIdx / numBatches;
+            int positionInWave = passengerIdx % numBatches;
+            int batchIdx = (wave % 2 == 0)
+                    ? positionInWave
+                    : numBatches - 1 - positionInWave;
+            batches.get(batchIdx).add(passengerIdx);
+        }
+
+        List<SubTaskData> subtasks = new ArrayList<>();
+        for (List<Integer> batch : batches) {
+            byte[] serialized = serializeBatch(batch);
             subtasks.add(new SubTaskData(UUID.randomUUID().toString(), serialized));
         }
 
-        log.info("Задача разбита на {} подзадач (по одному назначению taxi[0] → passenger[i])",
-                subtasks.size());
+        log.info("Taxi задача разбита на {} подзадач (batch_size={}, всего префиксов={})",
+                subtasks.size(), batchSize, totalPrefixes);
         return subtasks;
     }
 
     /**
-     * Формат подзадачи:
-     *   k                       — длина префикса (тут всегда 1)
-     *   taxi_idx passenger_idx  — фиксированное назначение
+     * Формат батча:
+     *   P                              — количество префиксов в батче
+     *   1                              — длина каждого префикса (всегда 1)
+     *   taxi_idx_1 passenger_idx_1     — первый префикс
+     *   1
+     *   taxi_idx_2 passenger_idx_2
+     *   ...
      */
-    private byte[] serializePrefix(int taxiIdx, int passengerIdx) {
+    private byte[] serializeBatch(List<Integer> passengerIndices) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (PrintWriter pw = new PrintWriter(baos, false, StandardCharsets.UTF_8)) {
-            pw.println(1);
-            pw.println(taxiIdx + " " + passengerIdx);
+            pw.println(passengerIndices.size());
+            for (int passengerIdx : passengerIndices) {
+                pw.println(1);  // длина префикса
+                pw.println("0 " + passengerIdx);
+            }
         }
         return baos.toByteArray();
     }

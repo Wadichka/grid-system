@@ -11,3 +11,6 @@ spring:
 
 jar-storage:
   dir: ./task-generator/jars
+
+batching:
+  size: 16
